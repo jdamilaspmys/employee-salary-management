@@ -2,18 +2,18 @@ import { Modal, Button } from "react-bootstrap";
 
 const UserDeleteModal = (props) => {
   return (
-    <Modal show={props.isShowDeleteModal} onHide={props.handlerCloseModal}>
+    <Modal show={props.isShow} onHide={props.onModalClose}>
       <Modal.Header closeButton>
         <Modal.Title>Delete Employee </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        Do you want to delete <b>{props?.userToDelete?.fullname} </b> employee ?
+        Do you want to delete <b>{props?.user?.fullname} </b> employee ?
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={props.handlerCloseModal}>
+        <Button variant="secondary" onClick={props.onModalClose}>
           No
         </Button>
-        <Button variant="danger" onClick={props.deleteConfirmHandler}>
+        <Button variant="danger" onClick={props.onModalConfirm}>
           Yes
         </Button>
       </Modal.Footer>
