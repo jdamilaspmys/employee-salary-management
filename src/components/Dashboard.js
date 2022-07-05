@@ -4,8 +4,14 @@ import UserList from "./UserList";
 const Dashboard = () => {
   return (
     <>
-      <UploadUsers></UploadUsers>
-      <UserList></UserList>
+      <div className="container">
+        <div className="row">
+          <UploadUsers></UploadUsers>
+        </div>
+        <div className="row">
+          <UserList></UserList>
+        </div>
+      </div>
     </>
   );
 };

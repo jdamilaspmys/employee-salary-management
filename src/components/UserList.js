@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import UserDeleteModal from "./UserDeleteModal";
 const UserList = () => {
   const dummyUsers = [
     {
@@ -12,10 +12,20 @@ const UserList = () => {
       id: "0002",
       username: "user01",
       fullname: "user 01",
-      salary: 1.0,
+      salary: 2.0,
+    },
+    {
+      id: "0003",
+      username: "user03",
+      fullname: "user 03",
+      salary: 5.0,
     },
   ];
   const [users, setUsers] = useState(dummyUsers);
+  const [isShowDeleteModal, setIsShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState({});
+
+  //   START User Edit Handler
   const editHandler = (id) => {
     const foundUser = users.find((user) => user.id === id);
     if (foundUser) {
@@ -29,41 +39,79 @@ const UserList = () => {
       });
     }
   };
-
+  //  START User Delete Handler
   const deleteHandler = (id) => {
     const foundUser = users.find((user) => user.id === id);
     if (foundUser) {
-      setUsers((preState) => {
-        return [...preState.filter((user) => user.id !== id)];
-      });
+      setUserToDelete(foundUser);
+      handlerShowModal();
     }
   };
+  const deleteConfirmHandler = () => {
+    const foundUser = users.find((user) => user.id === userToDelete.id);
+    if (foundUser) {
+      // TODO : API to Delete User
+      setUsers((preState) => {
+        return [...preState.filter((user) => user.id !== userToDelete.id)];
+      });
+      deleteHandler({});
+      handlerCloseModal();
+    }
+  };
+  const handlerShowModal = () => {
+    setIsShowDeleteModal(true);
+  };
+  const handlerCloseModal = () => {
+    setIsShowDeleteModal(false);
+  };
+
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>Id</th>
-          <th>Username</th>
-          <th>Fullname</th>
-          <th>salary</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {users.map((user) => (
-          <tr key={user.id}>
-            <td>{user.id}</td>
-            <td>{user.username}</td>
-            <td>{user.fullname}</td>
-            <td>${user.salary.toFixed(2)}</td>
-            <td>
-              <button onClick={() => editHandler(user.id)}>E</button>
-              <button onClick={() => deleteHandler(user.id)}>D</button>
-            </td>
+    <div>
+      <UserDeleteModal
+        isShowDeleteModal={isShowDeleteModal}
+        handlerCloseModal={handlerCloseModal}
+        deleteConfirmHandler={deleteConfirmHandler}
+        userToDelete={userToDelete}
+      ></UserDeleteModal>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Username</th>
+            <th>Fullname</th>
+            <th>salary</th>
+            <th>Action</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>{user.username}</td>
+              <td>{user.fullname}</td>
+              <td>${user.salary.toFixed(2)}</td>
+              <td>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => editHandler(user.id)}
+                >
+                  E
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    deleteHandler(user.id);
+                  }}
+                >
+                  D
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
