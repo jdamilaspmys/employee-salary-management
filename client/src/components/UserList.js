@@ -2,37 +2,34 @@ import { useEffect, useState } from "react";
 import UserDeleteModal from "./UserDeleteModal";
 import UserEditModal from "./UserEditModal";
 import { Button } from "react-bootstrap";
-const UserList = (props) => {
-  const dummyUsers = [
-    {
-      id: "0001",
-      username: "user01",
-      fullname: "User C",
-      salary: 1.0,
-    },
-    {
-      id: "0002",
-      username: "user01",
-      fullname: "User B",
-      salary: 2.0,
-    },
-    {
-      id: "0003",
-      username: "user03",
-      fullname: "User C",
-      salary: 5.0,
-    },
-  ];
+import axios from "axios";
+import constants from "../util/Constants";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const UserList = () => {
   const [users, setUsers] = useState([]);
-
-  useEffect(() => {
-    setUsers(dummyUsers);
-  }, []);
-
   const [isShowDeleteModal, setIsShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState({});
   const [isShowEditModal, setIsShowEditModal] = useState(false);
   const [userToEdit, setUserToEdit] = useState({});
+  const [isErrorLoadingUserList, setIsErrorLoadingUserList] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load User List
+  useEffect(() => {
+    axios
+      .get(`${constants.SERVER_BASE_URL}/users`)
+      .then((res) => {
+        setUsers(res.data);
+        setIsErrorLoadingUserList(false);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        setIsErrorLoadingUserList(true);
+        setIsLoading(false);
+      });
+  }, []);
 
   //   START User Edit Handler
   const editHandler = (id) => {
@@ -56,13 +53,31 @@ const UserList = (props) => {
         fullname: userInfo.fullname,
         salary: userInfo.salary,
       };
-      setUsers((preState) => {
-        return [
-          toUpdateUser,
-          ...preState.filter((user) => user.id !== userToEdit.id),
-        ];
-      });
-      handlerCloseEditModal();
+      axios
+        .put(`${constants.SERVER_BASE_URL}/users/${foundUser.id}`, toUpdateUser)
+        .then((res) => {
+          if (res.status === 204) {
+            successToast(
+              `Successfully Update Employee ${foundUser.id} (${foundUser.fullname})`
+            );
+            setUsers((preState) => {
+              return [
+                toUpdateUser,
+                ...preState.filter((user) => user.id !== userToEdit.id),
+              ];
+            });
+            handlerCloseEditModal();
+          } else {
+            errorToast(
+              `Unable to Update Employee ${foundUser.id} (${foundUser.fullname})`
+            );
+          }
+        })
+        .catch((error) => {
+          errorToast(
+            `Unable to Update Employee ${foundUser.id} (${foundUser.fullname})`
+          );
+        });
     }
   };
   const handlerShowEditModal = () => {
@@ -82,12 +97,29 @@ const UserList = (props) => {
   const deleteConfirmHandler = () => {
     const foundUser = users.find((user) => user.id === userToDelete.id);
     if (foundUser) {
-      // TODO : API to Delete User
-      setUsers((preState) => {
-        return [...preState.filter((user) => user.id !== userToDelete.id)];
-      });
-      setUserToDelete({});
-      handlerCloseDeleteModal();
+      axios
+        .delete(`${constants.SERVER_BASE_URL}/users/${foundUser.id}`)
+        .then((res) => {
+          if (res.status === 204) {
+            successToast(
+              `Successfully Delete Employee ${foundUser.id} (${foundUser.fullname})`
+            );
+            setUsers((preState) => {
+              return [...preState.filter((user) => user.id !== foundUser.id)];
+            });
+            setUserToDelete({});
+            handlerCloseDeleteModal();
+          } else {
+            errorToast(
+              `Unable to Delete Employee ${foundUser.id} (${foundUser.fullname})`
+            );
+          }
+        })
+        .catch((error) => {
+          errorToast(
+            `Unable to Delete Employee ${foundUser.id} (${foundUser.fullname})`
+          );
+        });
     }
   };
   const handlerShowDeleteModal = () => {
@@ -95,6 +127,13 @@ const UserList = (props) => {
   };
   const handlerCloseDeleteModal = () => {
     setIsShowDeleteModal(false);
+  };
+  // Toast
+  const successToast = (msg) => {
+    toast.success(msg);
+  };
+  const errorToast = (error) => {
+    toast.error(error);
   };
 
   return (
@@ -105,6 +144,7 @@ const UserList = (props) => {
         onModalConfirm={deleteConfirmHandler}
         user={userToDelete}
       ></UserDeleteModal>
+      <ToastContainer />
       <UserEditModal
         isShow={isShowEditModal}
         onModalClose={handlerCloseEditModal}
@@ -178,6 +218,16 @@ const UserList = (props) => {
           ))}
         </tbody>
       </table>
+      {!isLoading && !users.length && (
+        <div className="alert alert-secondary" role="alert">
+          Records Not Found :(
+        </div>
+      )}
+      {isErrorLoadingUserList && (
+        <div className="alert alert-warning" role="alert">
+          Uanble to Load Employee List :(
+        </div>
+      )}
     </div>
   );
 };
