@@ -61,10 +61,11 @@ const UserList = () => {
               `Successfully Update Employee ${foundUser.id} (${foundUser.fullname})`
             );
             setUsers((preState) => {
-              return [
-                toUpdateUser,
-                ...preState.filter((user) => user.id !== userToEdit.id),
-              ];
+              const indexOf = preState.findIndex(
+                (user) => user.id === foundUser.id
+              );
+              preState[indexOf] = toUpdateUser;
+              return [...preState];
             });
             handlerCloseEditModal();
           } else {
