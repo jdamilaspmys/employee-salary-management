@@ -8,21 +8,21 @@ Employee Salary Management
 - NodeJs 
 
 #### Set Up Frontend 
-`
+```
 cd client 
 npm i 
 npm run start 
-`
+```
 
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 ### Set Up Server 
 
-`
+```
 cd server 
 npm i 
 npm run start 
-`
+```
 
 Open [http://localhost:3001](http://localhost:3001) to view it in your browser.
 
