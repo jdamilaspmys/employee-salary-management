@@ -145,7 +145,7 @@ const UserList = () => {
         onModalConfirm={deleteConfirmHandler}
         user={userToDelete}
       ></UserDeleteModal>
-      <ToastContainer />
+      <ToastContainer limit={10} newestOnTop />
       <UserEditModal
         isShow={isShowEditModal}
         onModalClose={handlerCloseEditModal}
