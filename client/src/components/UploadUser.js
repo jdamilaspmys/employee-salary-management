@@ -78,6 +78,8 @@ const UploadUsers = () => {
 
   const hideHandler = () => {
     setIsShow(false);
+    setIsUploadSuccess("");
+    setIsError("");
   };
 
   const openUploadModalClick = () => {
