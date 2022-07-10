@@ -1,5 +1,8 @@
 var express = require("express");
 var router = express.Router();
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 var dummyUsers = [
   {
@@ -23,16 +26,52 @@ var dummyUsers = [
 ];
 
 /* ADD users */
-router.post("/", function (req, res, next) {
-  // TODO : Only for Test
-  dummyUsers.push({
-    id: "000" + dummyUsers.length,
-    username: "user" + dummyUsers.length,
-    fullname: "User C",
-    salary: parseFloat(1 + Math.random().toFixed(2)),
-  });
-  // TODO : Only for Test
-  res.status(201).json();
+router.post("/", upload.single("file"), function (req, res, next) {
+  try {
+    /**
+     * 1. Read File
+     * 2. Validate Extention
+     * 3. Validate Header
+     * 4. Validate Content ( Type [ string, number ] )
+     * 5. Validate Duplicate 
+     * 6. Insert to DB 
+     *
+    errorType: "INVALID_FILE_TYPE", 
+    errorMessage: "Inavalid File Type. Accept file type `csv`"
+    *
+    errorType: "INVALID_HEADER",
+    errorMessage: [{ "index": 0, "received": "RECEIVED_TEXT", "expected": "EXPECTED_TEXT" } ]
+    *
+    errorType: "INVALID_CONTENT", 
+    errorMessage: [{ "row": 0, "index": 0, "header" : "HEADER","receivedType": "string", "expectedType": "number", "received" : "txt-here", example: "5.44" } ]
+    *
+    errorType: "DUPLICATE_CONTENT",
+    errorMessage: [{ "row": 0, "index": 0, "header" : "HEADER", "duplicate": "" } ]
+     */
+
+    setTimeout(() => {
+      try {
+        const file = req.file;
+        const { originalname } = file || {};
+        if (!originalname) {
+          throw new Error("file required");
+        }
+        const isValidExtention =
+          originalname && originalname.split(".").pop() === "csv";
+        if (!isValidExtention) {
+          throw {
+            errorType: "INVALID_FILE_TYPE",
+            errorMessage: "Inavalid File Type. Accept file type `csv`",
+          };
+        }
+        res.status(201).json("OK");
+      } catch (error) {
+        res.status(400).json(error?.errorType ? error : "");
+      }
+    }, 1000);
+  } catch (error) {
+    res.status(400).json("");
+  }
 });
 
 /* GET users listing. */
