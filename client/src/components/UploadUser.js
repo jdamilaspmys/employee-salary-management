@@ -1,8 +1,29 @@
 import { useState, useRef } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Modal, Button, Form, Alert } from "react-bootstrap";
 import axios from "axios";
 import constants from "../util/Constants";
 import { ToastContainer } from "react-toastify";
+
+const ErrorDisplay = (props) => {
+  let errorMessage = "Unable to upload file :(";
+  if (props?.errorType === "INVALID_FILE_TYPE") {
+    errorMessage = "Inavalid File Type. Accept file type `csv`";
+  }
+  if (props?.errorType === "INVALID_HEADER") {
+    errorMessage = "Invalid Header";
+  }
+  if (props?.errorType === "INVALID_CONTENT") {
+    errorMessage = "Inavalid Content";
+  }
+  if (props?.errorType === "DUPLICATE_CONTENT") {
+    errorMessage = "Duplicate Content";
+  }
+  return (
+    <>
+      <Alert variant="danger">{errorMessage}</Alert>
+    </>
+  );
+};
 
 const UploadUsers = () => {
   const [isShow, setIsShow] = useState(false);
@@ -11,10 +32,17 @@ const UploadUsers = () => {
   const [selectedFile, setSelectedFile] = useState();
   const inputRef = useRef();
   const [isUploadSucces, setIsUploadSuccess] = useState(false);
+  const [isError, setIsError] = useState("");
+  const [errorObject, setErrorObject] = useState({
+    errorType: "",
+    errorMessage: "",
+  });
 
   const submitHandler = (event) => {
     event.preventDefault();
     setIsUploading(true);
+    setIsError("");
+    setIsUploadSuccess("");
     const formData = new FormData();
     formData.append("file", selectedFile);
     axios
@@ -25,14 +53,26 @@ const UploadUsers = () => {
         if (res.status === 201) {
           inputRef.current.value = "";
           setIsUploading(false);
-          isSelectFile(false);
+          setIsSelectFile(false);
           setIsUploadSuccess(true);
         } else {
-          setIsUploading(false);
+          throw new Error("Unable to upload file :(");
         }
       })
       .catch((error) => {
         setIsUploading(false);
+        const errorType = error?.response?.data?.errorType;
+        const errorMessage = error?.response?.data?.errorMessage;
+        if (errorType) {
+          setIsError(true);
+          setErrorObject({ errorType, errorMessage });
+        } else {
+          setIsError(true);
+          setErrorObject({
+            errorType: "OTHER",
+            errorMessage: "Unable to upload file :(",
+          });
+        }
       });
   };
 
@@ -46,6 +86,8 @@ const UploadUsers = () => {
 
   const onFileChangeHandler = () => {
     setIsSelectFile(true);
+    setIsUploadSuccess("");
+    setIsError("");
     setSelectedFile(inputRef.current.files[0]);
   };
 
@@ -73,7 +115,10 @@ const UploadUsers = () => {
                 role="status"
               ></div>
             )}
-            {isUploadSucces && <p> Upload Success </p>}
+            {isUploadSucces && (
+              <Alert variant="success">Upload Success ... !</Alert>
+            )}
+            {isError && <ErrorDisplay errorType={errorObject?.errorType} />}
           </Modal.Body>
           <Modal.Footer>
             <Button
